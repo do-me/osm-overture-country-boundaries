@@ -216,3 +216,15 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# macOS
+.DS_Store
+
+# Pipeline data caches (auto-regenerated; ~5 GB Overture parquet plus small
+# OSM Layercake / migurski / Natural Earth caches). The deliverable parquets
+# (country_diff / migurski_disputes / multi_country_mask) live at repo root
+# and ARE tracked.
+/data/
+
+# DuckDB scratch DB (default --db-path; rebuilt on every run)
+/compare.ddb

@@ -9,7 +9,7 @@ Reproduce country_diff.parquet end-to-end.
   1. List + download every division_area parquet for the Overture release
      (default 2026-04-15.0) into <data-dir>/division_area/
   2. Download the OSM US Layercake boundaries.parquet into <data-dir>/
-  3. Run a single DuckDB pipeline that produces <data-dir>/country_diff.parquet:
+  3. Run a single DuckDB pipeline that produces ./country_diff.parquet:
        - Overture: dissolve every division_area row whose `country` column is set
          and whose subtype IN (country, dependency), grouped by country.
        - OSM: filter boundary=administrative AND admin_level=2 AND ISO3166-1:alpha2 IS NOT NULL.
@@ -22,9 +22,14 @@ Reproduce country_diff.parquet end-to-end.
        - Drop sub-0.01 km² numerical-noise rows; sort by area desc; embed
          KV metadata describing semantics, methodology and column meanings.
 
+Scope: this script produces ONLY country_diff.parquet (Overture-vs-OSM
+territorial divergence). For the full disputed-areas pipeline that ALSO
+layers migurski/boundary-issues + Natural Earth on top of this, use
+`disputed_areas.py`.
+
 Usage:
-    uv run reproduce_country_diff.py
-    uv run reproduce_country_diff.py --release 2026-04-15.0 --data-dir data --threads 12
+    uv run osm_overture_country_diff.py
+    uv run osm_overture_country_diff.py --release 2026-04-15.0 --data-dir data --threads 12
 
 Idempotent: existing local files are skipped when their size matches the
 remote (Overture sizes from S3 ListObjectsV2; OSM size from HEAD).
@@ -432,13 +437,13 @@ def main() -> int:
     ap.add_argument("--db-path", type=Path, default=Path("compare.ddb"),
                     help="DuckDB scratch DB. Use ':memory:' for ephemeral. (default: ./compare.ddb)")
     ap.add_argument("--out", type=Path, default=None,
-                    help="Output path (default: <data-dir>/country_diff.parquet)")
+                    help="Output path (default: ./country_diff.parquet)")
     args = ap.parse_args()
 
     data = args.data_dir.resolve()
     div_dir = data / "division_area"
     div_dir.mkdir(parents=True, exist_ok=True)
-    out_path = (args.out or data / "country_diff.parquet").resolve()
+    out_path = (args.out or Path("country_diff.parquet")).resolve()
     db_path = None if str(args.db_path) == ":memory:" else args.db_path.resolve()
 
     print(f"Overture release : {args.release}")
